@@ -1,4 +1,10 @@
-# Umi.js + TinaCMS
+<h1 align="center">
+Umi.js + TinaCMS
+</h1>
+
+![image](/_img/tina-umi.png)
+
+<br>
 
 This repository demonstrates how to integrate Umi.js with TinaCMS for a dynamic blog-like application.
 
