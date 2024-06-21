@@ -1,45 +1,37 @@
-import React, { useEffect, useState } from 'react';
+import { PostQuery } from 'tina/__generated__/types';
+import { tinaField, useTina } from 'tinacms/dist/react';
 import { TinaMarkdown } from 'tinacms/dist/rich-text';
-import { useParams } from 'umi';
+import { useClientLoaderData } from 'umi';
 import client from '../../../tina/__generated__/client';
 
-const PostPage: React.FC = () => {
-  const { filename } = useParams<{ filename: string }>();
-  const [postData, setPostData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const PostPage = () => {
+  const { data: postData } = useClientLoaderData();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data } = await client.queries.post({
-          relativePath: `${filename}.md`,
-        });
-        setPostData(data);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [filename]);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
+  const { data } = useTina<PostQuery>({ ...postData });
+  const post = data?.post;
 
   return (
     <div>
-      <h1>{postData?.post.title}</h1>
-      <TinaMarkdown content={postData?.post.body} />
+      <h1 data-tina-field={tinaField(post, 'title')}>{post?.title}</h1>
+      <TinaMarkdown
+        data-tina-field={tinaField(post, 'body')}
+        content={post?.body}
+      />
     </div>
   );
 };
 
 export default PostPage;
+
+export async function clientLoader() {
+  //? Note - Not sure if this is the best way to get this data?
+  //! This will need to be modified to work with nested routes
+  const pathArray = window.location.pathname.split('/');
+  const filename = pathArray[pathArray.length - 1];
+
+  const data = await client.queries.post({
+    relativePath: `${filename}.md`,
+  });
+
+  return { ...data };
+}
